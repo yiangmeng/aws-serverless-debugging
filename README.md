@@ -1,26 +1,57 @@
-# Wild Rydes Serverless Workshops
+# Serverless DevOps Workshop
 
-This repository contains a collection of workshops and other hands on content that will guide you through building various serverless applications using AWS Lambda, Amazon API Gateway, Amazon DynamoDB, AWS Step Functions, Amazon Kinesis, and other services.
+In this workshop you'll deploy a RESTful API that enables users to manage the Wild Rydes Unicorn Stable.  You will use the [Serverless Application Model (SAM)](https://github.com/awslabs/serverless-application-model) to deploy the API interfaces, business logic, and database into your AWS account.  The RESTful API will allow a user to list, create, view, update, and delete the unicorns in the Wild Rydes stable.
 
-# Workshops
+The application architecture uses [AWS Lambda](https://aws.amazon.com/lambda/), [Amazon API Gateway](https://aws.amazon.com/api-gateway/), and [Amazon DynamoDB](https://aws.amazon.com/dynamodb/).  The API is built using Lambda and API Gateway, using DynamoDB as a persistent data store for unicorn data.
 
-- [**Web Application**](WebApplication) - This workshop shows you how to build a dynamic, serverless web application. You'll learn how to host static web resources with Amazon S3, how to use Amazon Cognito to manage users and authentication, and how to build a RESTful API for backend processing using Amazon API Gateway, AWS Lambda and Amazon DynamoDB.
+See the diagram below for a depiction of the API architecture.
 
-- [**Auth**](Auth) - This workshop shows you how to build in security at multiple layers of your application, starting with sign-up and sign-in functionality for your application, how to secure serverless microservices, and how to leverage AWS's identity and access management (IAM) to provide fine-grained access control to your application's users. You'll learn how AWS Amplify integrates with Amazon Cognito, Amazon API Gateway, AWS Lambda, and IAM to provide an integrated authentication and authorization experience.
+![Wild Rydes DevOps RESTful API Application Architecture](images/wildrydes-devops-api-architecture.png)
 
-- [**Data Processing**](https://dataprocessing.wildrydes.com) - This workshop demonstrates how to collect, store, and process data with a serverless application. In this workshop you'll learn how to build real-time streaming applications using Amazon Kinesis Data Streams and Amazon Kinesis Data Analytics, how to archive data streams using Amazon Kinesis Data Firehose and Amazon S3, and how to run ad-hoc queries on those files using Amazon Athena.
+The DevOps Continuous Delivery Pipeline uses [AWS CodePipeline](https://aws.amazon.com/codepipeline/), [AWS CodeBuild](https://aws.amazon.com/codebuild/), and [Amazon S3](https://aws.amazon.com/s3/).  CodePipeline orchestrates the steps to build, test, and deploy your code changes.  CodeBuild compiles source code, runs tests, and produces software packages that are ready to deploy to environments.
 
-- [**DevOps**](DevOps) - This workshop shows you how to use the [Serverless Application Model (SAM)](https://github.com/awslabs/serverless-application-model) to build a serverless application using Amazon API Gateway, AWS Lambda, and Amazon DynamoDB. You'll learn how to use SAM from your workstation to release updates to your application, how to build a CI/CD pipeline for your serverless application using AWS CodePipeline and AWS CodeBuild, and how to enhance your pipeline to manage multiple environments for your application.
+<!--
+See the screenshot below for a depiction of the continuous delivery pipeline that you will build at the completion of Module 4.
 
-- [**Image Processing**](ImageProcessing) - This module shows you how to build a serverless image processing application using workflow orchestration in the backend. You'll learn the basics of using AWS Step Functions to orchestrate multiple AWS Lambda functions while leveraging the deep learning-based facial recognition features of Amazon Rekogntion.
+![Wild Rydes Unicorn API Continuous Delivery Pipeline](images/codepipeline-final.png)
+-->
 
-- [**Multi Region**](MultiRegion) - This workshop shows you how to build a serverless ticketing system that is replicated across two regions and provides automatic failover in the event of a disaster. You will learn the basics of deploying AWS Lambda functions, exposing them via API Gateway, and configuring replication using Route53 and DynamoDB streams.
+If you'd like to jump in and get started please visit the [CodeStar Project](0_CodeStar) module page to begin the workshop.
 
-- [**Security**](https://github.com/aws-samples/aws-serverless-security-workshop) - This workshop shows you techniques to secure a serverless application built with AWS Lambda, Amazon API Gateway and RDS Aurora. We will cover AWS services and features you can leverage to improve the security of a serverless applications in 5 domains: identity & access management, infrastructure, data, code, and logging & monitoring.
+## Prerequisites
+
+### AWS Account
+
+In order to complete this workshop you'll need an AWS Account with access to create AWS IAM, S3, DynamoDB, Lambda, API Gateway, CodePipeline, and CodeBuild resources. The code and instructions in this workshop assume only one student is using a given AWS account at a time. If you try sharing an account with another student, you'll run into naming conflicts for certain resources. You can work around these by appending a unique suffix to the resources that fail to create due to conflicts, but the instructions do not provide details on the changes required to make this work.
+
+All of the resources you will launch as part of this workshop are eligible for the AWS free tier if your account is less than 12 months old. See the [AWS Free Tier page](https://aws.amazon.com/free/) for more details.
+
+### AWS Command Line Interface
+
+To complete the first module of this workshop you'll need the AWS Command Line Interface (CLI) installed on your local machine. You'll use the CLI to copy objects into your S3 website bucket.
+
+Follow the [AWS CLI Getting Started](http://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-set-up.html) guide to install and configure the CLI on your machine.
+
+### Browser
+
+We recommend you use the latest version of Chrome or Firefox when testing the web application UI.
+
+### Text Editor
+
+You will need a local text editor for making minor updates to configuration files.
+
+## Modules
+
+This workshop is broken up into multiple modules. You must complete each module before proceeding to the next.
+
+0. [CodeStar Project](0_CodeStar)
+1. [Serverless Application Model (SAM)](1_ServerlessApplicationModel)
+2. [Continuous Delivery Pipeline](2_ContinuousDeliveryPipeline)
+3. [AWS X-Ray Integration](3_XRay)
+
+<!--
+4. [Multiple Environment CI/CD Pipeline](4_MultipleEnvironments)
+-->
 
 
-# Third Party Workshops
-
-The following workshops are created and maintained by third parties and explore a variety of other topics and tools related to serverless development on AWS.
-
-- [**HERE Geocoding and Routing Extensions**](https://github.com/heremaps/devrel-workshops/tree/master/aws-serverless) - These extensions to the [**Web Application**](WebApplication) and [**Data Processing**](https://dataprocessing.wildrydes.com) workshops walk through how to enhance the base applications with geocoding and advanced routing features. You'll see how to launch applications from the AWS Serverless Application Repository and integrate these components into the existing architectures. You'll need to complete the primary Web Application or Data Processing workshop from this repository before starting the extensions.
+After you have completed the workshop you can delete all of the resources that were created by following the [cleanup guide](9_CleanUp).
