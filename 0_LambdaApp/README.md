@@ -116,4 +116,4 @@ The sample application creates a RESTful API that takes HTTP requests and invoke
 
 ## Completion
 
-Congratulations! You have successfully created a Lambda Application, cloned the project Git repository to your workstation and tested the sample REST API.  In the next [Serverless Application Model (SAM) Module](../1_ServerlessApplicationModel), you will learn more about SAM and how to use it test your API locally.
+Congratulations! You have successfully created a Lambda Application, cloned the project Git repository to your workstation and tested the sample REST API.  In the next module  [1. Serverless Application Model (SAM) Module](../1_ServerlessApplicationModel), you will learn more about SAM and how to use it test your API locally.

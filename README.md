@@ -4,21 +4,15 @@
 
 In this workshop, you'll learn how to better manage Lambda Applications, use [Serverless Application Model (SAM)](https://github.com/awslabs/serverless-application-model) to debug locally and try out X-Ray to trace code errors & performance issues.
 
-You will use SAM to deploy API interfaces, business logic, and database into your AWS account, based on the [Wild Rydes Serverless Workshops](https://github.com/aws-samples/aws-serverless-workshops). The RESTful API will allow a user to list, create, view, update, and delete the unicorns in the Wild Rydes stable.
+You will use SAM to deploy API interfaces, business logic, and database into your AWS account. The RESTful API will allow a user to add items into a DynamoDB table and view list of items added.
 
-The application architecture uses [AWS Lambda](https://aws.amazon.com/lambda/), [Amazon API Gateway](https://aws.amazon.com/api-gateway/), and [Amazon DynamoDB](https://aws.amazon.com/dynamodb/).  The API is built using Lambda and API Gateway, using DynamoDB as a persistent data store for unicorn data.
+The application architecture uses [AWS Lambda](https://aws.amazon.com/lambda/), [Amazon API Gateway](https://aws.amazon.com/api-gateway/), and [Amazon DynamoDB](https://aws.amazon.com/dynamodb/).  The API is built using Lambda and API Gateway, using DynamoDB as a persistent data store for data.
 
 See the diagram below for a depiction of the API architecture.
 
-![Wild Rydes DevOps RESTful API Application Architecture](images/wildrydes-devops-api-architecture.png)
+![RESTful API Application Architecture](images/api-architecture.png)
 
 The serverless application that you will deploy runs on a DevOps Continuous Delivery Pipeline which uses [AWS CodePipeline](https://aws.amazon.com/codepipeline/), [AWS CodeBuild](https://aws.amazon.com/codebuild/), and [Amazon S3](https://aws.amazon.com/s3/).  CodePipeline orchestrates the steps to build, test, and deploy your code changes.  CodeBuild compiles source code, runs tests, and produces software packages that are ready to deploy to environments.
-
-<!--
-See the screenshot below for a depiction of the continuous delivery pipeline that you will build at the completion of Module 4.
-
-![Wild Rydes Unicorn API Continuous Delivery Pipeline](images/codepipeline-final.png)
--->
 
 ## Prerequisites
 

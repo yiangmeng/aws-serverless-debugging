@@ -1,16 +1,5 @@
 # Module 3: AWS X-Ray Integration
 
-<!--
-In this module, you'll use [AWS X-Ray](https://aws.amazon.com/xray/) to analyze and debug the API.
-
-The work you will do is divided up into 3 phases:  
-
-1. **[Environment Setup](#environment-setup)**
-2. **Problem 1: [Error Discovery Using X-Ray](#problem-1-error-discovery-using-x-ray)** and **[Resolution](#problem-1-resolution)**
-3. **Problem 2: [Performance Discovery Using-X-Ray](#problem-2-performance-discovery-using-x-ray)** and **[Resolution](#problem-2-resolution)**
-
-But first, a quick intro to AWS X-Ray...
--->
 ## AWS X-Ray Overview
 [AWS X-Ray](https://aws.amazon.com/xray/) helps you analyze and debug distributed applications, such as those built using a microservices architecture. Using X-Ray, you can understand how your application and its underlying services are performing to identify and troubleshoot the root causes of performance issues and errors.
 
@@ -231,3 +220,5 @@ Think of this as an X-Ray Service Map - *on steroids*.
 ## Completion
 
 You have successfully integrated AWS X-Ray and demonstrated how it can be used to identify errors, latencies, and create your own subsegments.
+
+Next, let's challenge yourself to a debugging experience with what you have learnt so far. Proceed to [3. Debugging Challenge](../3_DebuggingChallenge) to begin.

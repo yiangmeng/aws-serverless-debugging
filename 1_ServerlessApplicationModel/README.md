@@ -143,4 +143,4 @@ You can perform step-through debugging of your Lambda functions to make it easie
 
 You have successfully performed local development and testing of a RESTful serverless API using the Serverless Application Model.
 
-In the next [Debugging with X-Ray](../2_XRay), you will learn 
+In the next module [2. AWS X-Ray Integration](../2_XRay), you will learn how to use AWS X-Ray to analyze and debug the API.
