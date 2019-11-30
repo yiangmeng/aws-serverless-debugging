@@ -12,295 +12,135 @@ AWS SAM is based on [AWS CloudFormation](https://aws.amazon.com/cloudformation/)
 
 AWS SAM defines a set of resources that describe common components of serverless applications.  In order to include objects defined by AWS SAM within a CloudFormation template, the template must include a `Transform` section in the document root with a value of `AWS::Serverless-2016-10-31`.
 
-The Unicorn API includes Amazon API Gateway HTTP endpoints that trigger AWS Lambda functions that read and write data to an Amazon DynamoDB database.  The SAM template for the Unicorn API describes a DynamoDB table with a hash key and Lambda functions to list, view and update Unicorns in the Wild Rydes stable.
+## 1. Build and execute functions locally
 
-In this module, you will be working with a Lambda function that simply displays a welcome message.  The Unicorn API components are defined in the [template.yml](uni-api/template.yml) SAM template.  Next we'll review the Lambda function component in more detail.
+The AWS SAM command line interface (CLI) is an extension of the AWS CLI that adds functionality for building and testing Lambda applications. It uses Docker to run your functions in an Amazon Linux environment that matches Lambda. It can also emulate your application's build environment and API.
 
-### AWS::Serverless::Function
+If you prefer to use an integrated development environment (IDE) to build and test your application, you can use the AWS Toolkit.
+The AWS Toolkit is an open-source plugin for popular IDEs that uses the AWS SAM CLI to build and deploy serverless applications on AWS. The AWS Toolkit also adds step-through debugging for Lambda function code.
 
-Below is a code snippet from the SAM template to list Unicorns:
+#### Invoking functions locally
 
-```yaml
-  ListFunction:
-    Type: 'AWS::Serverless::Function'
-    Properties:
-      FunctionName: 'uni-api-list'
-      Runtime: nodejs8.10
-      CodeUri: app
-      Handler: list.lambda_handler
-      Description: List Unicorns
-      Timeout: 10
-      Events:
-        GET:
-          Type: Api
-          Properties:
-            Path: /unicorns
-            Method: get
-      Role: !GetAtt LambdaExecutionRole.Arn
-```
+1. Let's first setup our environment variables so that we can point the application to the right DynamoDB table. Head over to **Lambda Application** console under **Resources** section. Copy the table name.
+  ![DDB Table Name](images/ddb-table-name.png)
 
-There are several [properties](https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#properties) defined for the [AWS::Serverless::Function](https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction) resource, which we'll review in turn.
+2. Open up `env.json` and replace `<TABLE-NAME>` with the copied **Table Name** as shown below.
 
-#### FunctionName
+  ![Replaced Table Name](images/replace-ddb-table.png)
 
-The **FunctionName** property defines a custom name for the Lambda function.  If not specified, CloudFormation will generate a name using the CloudFormation Stack name, CloudFormation Resource name, and random ID.
+3. In Terminal window in VS Code, build your application with the `sam build` command.
 
-#### Runtime
+  ```bash
+  $ sam build -m package.json
+  ```
 
-The example API shown above is implemented in **Node.js 8.10**.  Additional runtimes are available for AWS Lambda.  Please refer to the [Lambda Execution Environment and Available Libraries](http://docs.aws.amazon.com/lambda/latest/dg/current-supported-versions.html) for the complete list.
+  The AWS SAM CLI installs dependencies that are defined in `package.json`, creates a deployment package, and saves its contents in the `.aws-sam/build` folder.
 
-#### CodeUri
+  We can now test a single function by invoking it directly with a test event. An event is a JSON document that represents the input that the function receives from the event source. Sample test events are included in the `events` folder in this project.
 
-The **CodeUri** property defines the location to the function code on your workstation relative to the SAM template.  In this example, "**app**" is used for the property value because the function code is in the `app` directory relative to the SAM template.
+4. Run functions locally and invoke them with the `sam local invoke` command.
 
-#### Handler
+  ```bash
+  $ sam local invoke putItemFunction --event events/event-post-item.json --env-vars env.json
+  ```
+  You should see a status code 200 if successful.
 
-The **Handler** property defines the entry point for the Lambda function.  For Javascript, This is formatted as "**file**.**function**", where **file** is the Javascript filename without the ".js" extension relative to the **CodeUri** path defined above and **function** is the name of the function in the file that will be executed with the Lambda function is invoked.
+5. Let's execute the function to retrieve all records to see if it was inserted.
+  ```bash
+  $ sam local invoke getAllItemsFunction --event events/event-get-all-items.json --env-vars env.json
+  ```
+  You should see the records which you have just inserted displayed correctly.
 
-#### Events
+## 2. Run an API Gateway locally
+You can use the `sam local start-api` command to start a local instance of API Gateway that you will use to test HTTP request/response functionality. This functionality features hot reloading to enable you to quickly develop and iterate over your functions.
 
-The **Events** property defines the sources that trigger the Lambda function invocation.  An [Api](https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api) event source is defined to integrate the Lambda function with an API Gateway endpoint, however SAM supports Lamdba function triggers from a variety of [sources](https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#event-source-types).
+1. From the `debug-api` directory, run the following command:
+  ```bash
+  $ sam local start-api --env-vars env.json
+  ```
 
-The **Api** event source to view details of a Unicorn is defined at the RESTful resource `/unicorns/{name}` accessed using the HTTP GET method.  SAM will transform the Api event to an API Gateway resource and map the **name** value in the URL to a [pathParameter](http://docs.aws.amazon.com/apigateway/latest/developerguide/getting-started-mappings.html) in the event used to invoke the Lambda function.
+  This will spawn a local API Gateway to test HTTP request/response functionality. Features hot-reloading to allow you to quickly develop, and iterate over your functions.  **`sam`** will automatically find any functions within your SAM template that have `Api` event sources defined, and mount them at the defined HTTP paths.
 
-#### Role
+2. Open up your browser and enter `http://127.0.0.1:3000/` in the address bar. If this is your first time running SAM CLI, there will be a delay as the Docker images are downloaded.
 
-The **Role** property defines the IAM Role that specifies the access permissions to AWS resources in the [Lambda execution policy](http://docs.aws.amazon.com/lambda/latest/dg/intro-permission-model.html#lambda-intro-execution-role).  For each project, CodeStar generates a Lambda execution role that has access to a default set of AWS resources.  This role can be modified with additional policies.
-
-## Environment Setup
-
-Each of the following sections provide an implementation overview and detailed, step-by-step instructions. The overview should provide enough context for you to complete the implementation if you're already familiar with the AWS Management Console or you want to explore the services yourself without following a walkthrough.
-
-If you're using the latest version of the Chrome, Firefox, or Safari web browsers the step-by-step instructions won't be visible until you expand the section.
-
-### 1. Update CodeStarWorker-uni-api-CloudFormation IAM Role
-
-1. In the AWS Management Console, click Services then select IAM under Security, Identity, & Compliance.
-
-1. Click the **Search IAM** search box.
-
-    ![Search IAM](images/cloudformation-role-1.png)
-
-1. Type `CodeStarWorker-uni-api-CloudFormation` in the search box and select **CodeStarWorker-uni-api-CloudFormation** in the left navigation.
-
-    ![Search CodeStarWorker-uni-api-CloudFormation](images/cloudformation-role-2.png)
-
-1. In the IAM Role Summary page, click the **Attach policies** button.
-
-    ![Attach policies](images/cloudformation-role-3.png)
-
-1. Type `AWSLambdaFullAccess` in the filter text box, select the checkbox to the left of the **AWSLambdaFullAccess** IAM Role, and click **Attach policy**.
-
-    ![Add AWSLambdaFullAccess policy](images/cloudformation-role-4.png)
-
-1. Upon returning to the IAM Role Summary page, note that the **AWSLambdaFullAccess** policy has been added to the Role.
-
-    ![Confirm policy addition](images/cloudformation-role-5.png)
-
-
-### 2. Seed the `uni-api` CodeCommit Git repository
-
-1. Each module has corresponding source code used to seed the CodeCommit Git repository for the CodeStar project.  To seed the CodeCommit Git repository, click on the **Launch Stack** button for your region below:
-
-    Region| Launch
-    ------|-----
-    US East (N. Virginia) | [![Launch Module 1 in us-east-1](http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/images/cloudformation-launch-stack-button.png)](https://console.aws.amazon.com/cloudformation/home?region=us-east-1#/stacks/create/review?stackName=Seed-1-ServerlessApplicationModel&templateURL=https://s3.amazonaws.com/fsd-aws-wildrydes-us-east-1/codecommit-template.yml&param_sourceUrl=https://s3.amazonaws.com/fsd-aws-wildrydes-us-east-1/uni-api-1-v5.zip&param_targetRepositoryName=uni-api&param_targetRepositoryRegion=us-east-1)
-    US West (N. California) | [![Launch Module 1 in us-west-1](http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/images/cloudformation-launch-stack-button.png)](https://console.aws.amazon.com/cloudformation/home?region=us-west-1#/stacks/create/review?stackName=Seed-1-ServerlessApplicationModel&templateURL=https://s3.amazonaws.com/fsd-aws-wildrydes-us-west-1/codecommit-template.yml&param_sourceUrl=https://s3-us-west-1.amazonaws.com/fsd-aws-wildrydes-us-west-1/uni-api-1-v5.zip&param_targetRepositoryName=uni-api&param_targetRepositoryRegion=us-west-1)
-    US West (Oregon) | [![Launch Module 1 in us-west-2](http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/images/cloudformation-launch-stack-button.png)](https://console.aws.amazon.com/cloudformation/home?region=us-west-2#/stacks/create/review?stackName=Seed-1-ServerlessApplicationModel&templateURL=https://s3.amazonaws.com/fsd-aws-wildrydes-us-west-2/codecommit-template.yml&param_sourceUrl=https://s3-us-west-2.amazonaws.com/fsd-aws-wildrydes-us-west-2/uni-api-1-v5.zip&param_targetRepositoryName=uni-api&param_targetRepositoryRegion=us-west-2)
-    EU (Ireland) | [![Launch Module 1 in eu-west-1](http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/images/cloudformation-launch-stack-button.png)](https://console.aws.amazon.com/cloudformation/home?region=eu-west-1#/stacks/create/review?stackName=Seed-1-ServerlessApplicationModel&templateURL=https://s3.amazonaws.com/fsd-aws-wildrydes-eu-west-1/codecommit-template.yml&param_sourceUrl=https://s3-eu-west-1.amazonaws.com/fsd-aws-wildrydes-eu-west-1/uni-api-1-v5.zip&param_targetRepositoryName=uni-api&param_targetRepositoryRegion=eu-west-1)
-    EU (Frankfurt) | [![Launch Module 1 in eu-central-1](http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/images/cloudformation-launch-stack-button.png)](https://console.aws.amazon.com/cloudformation/home?region=eu-central-1#/stacks/create/review?stackName=Seed-1-ServerlessApplicationModel&templateURL=https://s3.amazonaws.com/fsd-aws-wildrydes-eu-central-1/codecommit-template.yml&param_sourceUrl=https://s3-eu-central-1.amazonaws.com/fsd-aws-wildrydes-eu-central-1/uni-api-1-v5.zip&param_targetRepositoryName=uni-api&param_targetRepositoryRegion=eu-central-1)
-    Asia Pacific (Sydney) | [![Launch Module 1 in ap-southeast-2](http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/images/cloudformation-launch-stack-button.png)](https://console.aws.amazon.com/cloudformation/home?region=ap-southeast-2#/stacks/create/review?stackName=Seed-1-ServerlessApplicationModel&templateURL=https://s3.amazonaws.com/fsd-aws-wildrydes-ap-southeast-2/codecommit-template.yml&param_sourceUrl=https://s3-ap-southeast-2.amazonaws.com/fsd-aws-wildrydes-ap-southeast-2/uni-api-1-v5.zip&param_targetRepositoryName=uni-api&param_targetRepositoryRegion=ap-southeast-2)
-
-
-1. The CloudFormation template has been prepopulated with the necessary fields for this module.  No changes are necessary
-
-1. Select the **I acknowledge that AWS CloudFormation might create IAM resources.** checkbox to grant CloudFormation permission to create IAM resources on your behalf
-
-1. Click the **Create** button in the lower right corner of the browser window to create the CloudFormation stack and seed the CodeCommit repository.
-
-    ![Seed Repository CloudFormation Stack Review](images/seed-repository-1.png)
-
-1. There will be a short delay as the Git repository is seeded with the new source code.  Upon successful completion, the CloudFormation will show Status ``CREATE_COMPLETE``.
-
-    ![CloudFormation Stack Creation Complete](images/seed-repository-2.png)
-
-### 2. Fetch CodeCommit Git Repository
-
-Now that the CodeCommit Git repository has been seeded with new source code, you will need to fetch the changes locally so that you may modify the code.  Typically, this is accomplished using the `git pull` command, however for the workshop we have replaced the repository with a new history and different Git commands will be used.
-
-Using your preferred Git client, run the commands on your local `uni-api` Git repository:
-
-```bash
-git fetch --all
-git reset --hard origin/master
-```
-
-## AWS SAM CLI
-
-[AWS SAM CLI](https://docs.aws.amazon.com/lambda/latest/dg/test-sam-cli.html) is the AWS CLI tool for managing Serverless applications written with [Serverless Application Model (SAM)](https://github.com/awslabs/serverless-application-model).  SAM CLI can be used to test functions locally, start a local API Gateway from a SAM template, validate a SAM template, and generate sample payloads for various event sources.  
-
-### Installation
-
-To complete this module, you will need to install SAM CLI.  If you already have SAM CLI installed, you can skip this section.
-
-#### Prerequisites
-
-Running Serverless projects and functions locally with SAM CLI requires Docker to be installed and running. SAM CLI will use the `DOCKER_HOST` environment variable to contact the docker daemon.
-
-* macOS: [Docker for Mac](https://store.docker.com/editions/community/docker-ce-desktop-mac)
-* Windows: [Docker Toolbox](https://download.docker.com/win/stable/DockerToolbox.exe)
-* Linux: Check your distro's package manager (e.g. yum install docker)
-
-For macOS and Windows users: SAM CLI requires that the project directory (or any parent directory) is listed in Docker file sharing options.
-
-Verify that docker is working, and that you can run docker commands from the CLI (e.g. `docker ps`). You do not need to install/fetch/pull any containers - SAM CLI will do it automatically as required.
-
-
-#### Windows, Linux, macOS with pip [Recommended]
-
-The easiest way to install **`sam`** is to use [pip](https://pypi.org/project/pip/).
-
-To use pip, you must have [Python](https://www.python.org/) installed and added to your system's Environment path.
-
-```bash
-pip install aws-sam-cli
-```
-
-Verify the installation worked:
-
-```bash
-sam --version
-```
-
-#### Binary release
-
-We also release the CLI as binaries that you can download and instantly use. You can find them under [Releases](https://github.com/awslabs/aws-sam-cli/releases) in the SAM CLI repo.
-
-#### Alternative Installation: Amazon Linux (EC2)
-
-If you're unable to install SAM CLI on your workstation, you may find it easier to use SAM CLI on an Amazon Linux EC2 instance.   In this case, you will not be performing work locally on your laptop, instead you will connect remotely into an EC2 instance to perform editing and testing.
-
-1. [Create a keypair](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html), if you do not have one already.
-
-1. To launch an EC2 instance with the required dependencies, click on the **Launch Stack** button for your region below.  You will need to select the keypair that you created in the previous step, as well as a VPC and Subnet for your EC2 instance:
-
-    Region| Launch
-    ------|-----
-    US East (N. Virginia) | [![Launch Dev Instance in us-east-1](http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/images/cloudformation-launch-stack-button.png)](https://console.aws.amazon.com/cloudformation/home?region=us-east-1#/stacks/create/review?stackName=DeveloperInstance&templateURL=https://s3.amazonaws.com/wildrydes-us-east-1/DevOps/CloudFormation/developer-instance.yml)
-    US West (N. California) | [![Launch Dev Instance in us-west-1](http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/images/cloudformation-launch-stack-button.png)](https://console.aws.amazon.com/cloudformation/home?region=us-west-1#/stacks/create/review?stackName=DeveloperInstance&templateURL=https://s3.amazonaws.com/wildrydes-us-west-1/DevOps/CloudFormation/developer-instance.yml)
-    US West (Oregon) | [![Launch Dev Instance in us-west-2](http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/images/cloudformation-launch-stack-button.png)](https://console.aws.amazon.com/cloudformation/home?region=us-west-2#/stacks/create/review?stackName=DeveloperInstance&templateURL=https://s3.amazonaws.com/wildrydes-us-west-2/DevOps/CloudFormation/developer-instance.yml)
-    EU (Ireland) | [![Launch Dev Instance in eu-west-1](http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/images/cloudformation-launch-stack-button.png)](https://console.aws.amazon.com/cloudformation/home?region=eu-west-1#/stacks/create/review?stackName=DeveloperInstance&templateURL=https://s3.amazonaws.com/wildrydes-eu-west-1/DevOps/CloudFormation/developer-instance.yml)
-    EU (Frankfurt) | [![Launch Dev Instance in eu-central-1](http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/images/cloudformation-launch-stack-button.png)](https://console.aws.amazon.com/cloudformation/home?region=eu-central-1#/stacks/create/review?stackName=DeveloperInstance&templateURL=https://s3.amazonaws.com/wildrydes-eu-central-1/DevOps/CloudFormation/developer-instance.yml)
-    Asia Pacific (Sydney) | [![Launch Dev Instance in ap-southeast-2](http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/images/cloudformation-launch-stack-button.png)](https://console.aws.amazon.com/cloudformation/home?region=ap-southeast-2#/stacks/create/review?stackName=DeveloperInstance&templateURL=https://s3.amazonaws.com/wildrydes-ap-southeast-2/DevOps/CloudFormation/developer-instance.yml)
-
-
-1. Once the CloudFormation stack creation has completed, find the EC2 instance public DNS name by selecting the checkbox to the left of the **DeveloperInstance** Stack, and clicking the **Outputs** tab below the list of Stacks.  Find the output key labeled `PublicDnsName` and use the corresponding value in order to access the EC2 instance.
-
-1. Use SSH client to connect to the instance.  If you are using Windows, use a client such as Putty or Bitvise (you can find instructions for connecting from Windows using Putty here: [Connecting to Your Linux Instance from Windows Using PuTTY](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/putty.html))
-
-1. The Git repository has been cloned to the home directory on launch, `/home/ec2-user/uni-api`.
-
-##### Setup Port Forwarding Configuration
-
-SAM CLI can start an HTTP server locally on EC2 instance on port 3000.  In order to view content on that HTTP server through the browser on your laptop, you need to configure port forwarding.
-
-##### Port Forwarding on MacOS
-
-On your workstation, open a new terminal and run the following command.  In the command, replace ***~/mykeypair.pem*** with the location and file name of your .pem file and replace ***ec2-###-##-##-###.compute-1.amazonaws.com*** with the public DNS name of your EC2 developer instance:
-
-   ```
-   ssh -i ~/mykeypair.pem -N -L 3000:localhost:3000 ec2-user@ec2-###-##-##-###.compute-1.amazonaws.com
-   ```
-
-##### Port Forwarding with Putty on Windows
-
-1. In your putty configuration, select **Connection** , **SSH** , **Tunnels** and add a mapping:
-
-   ```
-   Source port: 3000
-   
-   Destination: 127.0.0.1:3000
-   ```
-
-   The configuration should look like this:
-
-   ![Putty Tunnel Config](images/putty-tunnel-config.png)
-
-##### Port Forwarding with Bitvise SSH Client on Windows
-
-1. In **Profile** window, select **C2S** tab, create an entry with this configuration:
-
-   ```
-   Listen Interface: 127.0.0.1
-   
-   List. Port: 3000
-   
-   Destination Host: localhost
-   
-   Dest. Port: 3000
-   ```
-
-   C2S configuration should look similar to this:
-
-   ![Bitvise Tunnel Config](images/bitvise-tunnel-config.png)
-
-## SAM CLI Development
-
-In this section, you will use SAM CLI on your workstation to run the Unicorn API and test changes to it without having to deploy to AWS.
-
-### Run API Gateway locally
-
-1. From the **`uni-api`** directory, run the following command:
-
-   ```bash
-   sam local start-api
-   ```
-   
-   If port forwarding from an EC2 developer instance, run the following command:
-
-   ```bash
-   sam local start-api --host 0.0.0.0
-   ```
-
-   This will spawn a local API Gateway to test HTTP request/response functionality. Features hot-reloading to allow you to quickly develop, and iterate over your functions.  **`sam`** will automatically find any functions within your SAM template that have `Api` event sources defined, and mount them at the defined HTTP paths.
-
-   If this is your first time running SAM CLI, there will be a delay as the Docker images are downloaded.  Once successful, you should see output similar to the screenshot below:
-
-   ![start-api output](images/start-api-output.png)
-
-1. Open a browser and enter `http://127.0.0.1:3000/unicorns` in the address bar.  Confirm that you see the output below:
-
-   ![Hello World in Browser](images/browser-hello-world.png)
-
-Congratulations!  You have successfully used SAM CLI to start a local development environment.  Keep the window open that is running the `sam local start-api` command until this module is complete.
-
-Next, let's look at how you can use SAM CLI to test changes to your API.
-
-### Test code changes locally
-
-**Goal**: Update `app/list.js` to change the welcome message to `Hello re:Invent!`.  Remember, the local API Gateway supports hot-reloading of code changes.  There is no need to restart the `sam local start-api` process to see changes.
-
-<details>
-<summary><strong>
-HOW TO update code and verify results (expand for details)
-</strong></summary>
-
-1. Open `app/list.js` in a text editor, update the message to read `Hello re:Invent!`, and save the changes.
-
-   ![Hello re:Invent Code Changes](images/hello-reinvent.png)
-
-1. Refresh the browser and confirm that you see the output below:
-
-   ![Hello Re:Invent in Browser](images/browser-hello-reinvent.png)
-</details>
-<p>
-
-Congratulations!  You've successfully test changes to a Lambda function in a local development environment.  You may now kill the SAM CLI running process.
+Congratulations!  You've successfully run Lambda function in a local development environment.
 
 To learn more about development with SAM CLI, check out [AWS Documentation](http://docs.aws.amazon.com/lambda/latest/dg/test-sam-local.html) and SAM CLI [GitHub repository](https://github.com/awslabs/aws-sam-local).  
 
+## 3. Debug Lambda functions locally
+AWS SAM integrates with a number of AWS toolkits to test and debug your serverless applications locally. In this case, for Visual Studio Code via [AWS Toolkit for Visual Studio Code](https://aws.amazon.com/visualstudiocode/).
+
+You can perform step-through debugging of your Lambda functions to make it easier to understand what the code is doing. It tightens the feedback loop by making it possible for you to find and troubleshoot issues that you might run into in the cloud.
+
+1. In Visual Studio Code, click on the **Debug** tab on the left. At the top, next to the Start Debug (green arrow) button, click on the dropdown and select **Add Configuration...** to create a launch configuration.
+  ![Add Launch Configuration](images/add-launch-configuration.png)
+
+2. This will automatically create a `launch.json` file in .vscode folder. Replace the existing content with the following code and replace values.
+```json
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Attach to SAM CLI",
+            "type": "node",
+            "request": "attach",
+            "address": "localhost",
+            "port": 5858,
+            "localRoot": "${workspaceRoot}",
+            "remoteRoot": "/var/task",
+            "protocol": "inspector",
+            "stopOnEntry": false
+        }
+    ]
+}
+```
+
+3. Go back to your code by clicking on the Explorer tab. By now, you will find that [CodeLens](https://code.visualstudio.com/blogs/2017/02/12/code-lens-roundup) appears above the handler function, showing options to **Run Locally**, **Debug Locally**, or **Configure** the function.
+>Note: If you do not see the CodeLens, click on the AWS Extension tab as shown below.
+
+  ![AWS Extensions](images/aws-extensions.png)
+
+4. Click on **Configure**, which will bring up a **templates.json** file. We will need to populate the required environment variables and event parameters to execute this function.
+
+4.  Copy the following code and replace the contents of the **templates.json** file.
+  ```json
+  {
+      "templates": {
+          "template.yml": {
+              "handlers": {
+                  "src/handlers/get-all-items.getAllItemsHandler": {
+                      "event": {
+                          "httpMethod": "GET"
+                      },
+                      "environmentVariables": {
+                          "SAMPLE_TABLE": "<TABLE-NAME>"
+                      }
+                  }
+              }
+          }
+      }
+  }
+  ```
+
+5. You will notice that we need to specify the DynamoDB **table name**. Again, you may head over to **Lambda Application** console under **Resources** section to copy the table name and replace it with `<TABLE-NAME>` as shown below.
+
+  ![DDB Table Name](images/ddb-table-name.png)
+
+  ![Replaced Table Name](images/replaced-table-name.png)
+
+6. Now, go back to `get-all-items.js` file and add a few breakpoints.
+
+  ![Add breakpoints](images/debug-breakpoints.png)
+
+7. Click on **Debug Locally** CodeLens to start debugging this function. SAM will build the application and start the debugger with the launch configuration and environment variables.
+
+8. Once a debug session starts, the Debug toolbar will appear on the top of the editor.
+
+9. Click on **Continue** to continue down the breakpoints. You can mouseover to view variable contents.
+
+
 ## Completion
 
-You have successfully performed local development and testing of a RESTful serverless API using the Serverless Application Model.  Please close the window running the `sam local start-api` command before preceding to the next module.
+You have successfully performed local development and testing of a RESTful serverless API using the Serverless Application Model.
 
-In the next [Continuous Delivery Pipeline Module](../2_ContinuousDeliveryPipeline), you will learn how to setup deployment of that API into AWS and to automate this deployment process using AWS CodePipeline and AWS CodeBuild.
+In the next [Debugging with X-Ray](../2_XRay), you will learn 
