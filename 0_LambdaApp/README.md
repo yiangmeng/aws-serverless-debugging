@@ -17,6 +17,9 @@ As of 3<sup>rd</sup> Oct 2019, AWS has added a **Create application** experience
 
 An AWS Lambda application is a combination of Lambda functions, event sources, and other resources that work together to perform tasks.
 
+The Lambda application would create a pipeline that looks like this:
+  ![Architecture](images/architecture-diagram.png)
+
 ## 1. Create a Lambda Application
 
 **Goal**: Use the AWS Console to create a Lambda project called `debug-api` using the **Node.js Serverless API backend** template.  Use a web browser to confirm that the API Gateway endpoint created by the Lambda Application returns `[]`, in its response.

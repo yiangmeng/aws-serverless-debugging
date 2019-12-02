@@ -12,6 +12,10 @@ AWS SAM is based on [AWS CloudFormation](https://aws.amazon.com/cloudformation/)
 
 AWS SAM defines a set of resources that describe common components of serverless applications.  In order to include objects defined by AWS SAM within a CloudFormation template, the template must include a `Transform` section in the document root with a value of `AWS::Serverless-2016-10-31`.
 
+The CloudFormation template will spin up the following API architecture:
+
+![RESTful API Application Architecture](images/api-architecture.png)
+
 ## 1. Build and execute functions locally
 
 The AWS SAM command line interface (CLI) is an extension of the AWS CLI that adds functionality for building and testing Lambda applications. It uses Docker to run your functions in an Amazon Linux environment that matches Lambda. It can also emulate your application's build environment and API.

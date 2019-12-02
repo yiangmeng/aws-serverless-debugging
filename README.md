@@ -16,36 +16,16 @@ The serverless application that you will deploy runs on a DevOps Continuous Deli
 
 ## Prerequisites
 
-### 1. re:Invent 2019 Builders Session Lab Account
+### 1. AWS Account
+In order to complete this workshop you'll need an AWS Account with access to create AWS IAM, S3, DynamoDB, Lambda, API Gateway, CodePipeline, and CodeBuild resources. The code and instructions in this workshop assume only one student is using a given AWS account at a time. If you try sharing an account with another student, you'll run into naming conflicts for certain resources. You can work around these by appending a unique suffix to the resources that fail to create due to conflicts, but the instructions do not provide details on the changes required to make this work.
 
-For this workshop, we will be issuing lab accounts for you to use to try out the services as documented. It is just like any other AWS account (with some IAM restrictions) and is completely **free to use**. You will not be charged for running any resources in these accounts. Do not store any sensitive information on these accounts. Note that the accounts will be terminated after the workshop, so do take measures to backup and save any work done.
+All of the resources you will launch as part of this workshop are eligible for the AWS free tier if your account is less than 12 months old. See the AWS Free Tier page for more details.
 
-> **Note:** As AWS accounts are a finite resource and we have obtained approval to provision them solely for this workshop's purpose, we'd like to ask you to be **frugal** on the usage.
+### 2.IAM Users
 
-1. Prior to the workshop, you will receive a **12-character team hash**. If you do not have this, please sound out to the workshop facilitator for assistance.
+We will be assuming that you are running any command lines with an **Administrator** role for this workshop.
 
-2. Head over to the [Event Engine Dashboard](https://dashboard.eventengine.run/) to login with the hash.
-
-  ![Hash](images/hash_login.png)
-
-3. Once you have logged in, you will be greeted with the **User Dashboard**. The AWS console can be access by clicking on the **AWS Console** button on the right.
-
-  ![DevOps Workshop Architecture](images/console.png)
-  ![DevOps Workshop Architecture](images/console2.png)
-
-> **Important:** Please use the region **US West - N.California (us-west-1)** for all resources in this lab.
-
-### 2. AWS credentials
-
-In this workshop, you will be interacting with AWS resources from your local workstation, such as pulling/pushing code into your CodeCommit repository, run CloudFormation templates etc. As such, you will need to run these actions with an AWS credentials that has the permissions to do so. We will use the AWS Console to setup an IAM user with **Administrator** rights so that your local workstation can assume this role.
-
-> Note: We are using an Administrator role in this workshop to simplify the steps required in and is NOT recommended in a Production environment.
-
-<details>
-<summary><strong>HOW TO create IAM user with Administrator permission (expand for details)</strong></summary><p>
-
-**Creating IAM users from the AWS console**
-
+#### To create an IAM user:
 1. Sign in to the AWS Management Console and open the IAM console at [https://console.aws.amazon.com/iam/](https://console.aws.amazon.com/iam/).
 
 2. In the navigation pane, choose **Users** and then choose **Add user**.
@@ -106,6 +86,8 @@ Before you can install the Toolkit for VS Code, you must have the following:
 ### 4. AWS Command Line Interface
 
 Follow the [AWS CLI Getting Started](https://docs.aws.amazon.com/cli/latest/userguide/install-cliv1.html) guide to install and configure the CLI on your machine. Use CLI version 1 for this workshop.
+
+To configure the AWS CLI with a user you have created from step 2 earlier, follow the [Configuring the AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-configure.html) guide.
 
 ### 5. AWS SAM CLI
 [AWS SAM CLI](https://docs.aws.amazon.com/lambda/latest/dg/test-sam-cli.html) is the AWS CLI tool for managing Serverless applications written with [Serverless Application Model (SAM)](https://github.com/awslabs/serverless-application-model).  SAM CLI can be used to test functions locally, start a local API Gateway from a SAM template, validate a SAM template, and generate sample payloads for various event sources. We will try using the SAM CLI to test functions and host our local API Gateway in this session.
