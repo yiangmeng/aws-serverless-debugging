@@ -2,6 +2,8 @@
 
 *Note: The following workshop series is customized for AWS re:Invent 2019 Builders Session on **"DOP340: Debugging serverless applications"** and may contain content that is based on having resources provided during the workshop.*
 
+Slides presented at DOP340 can be found [here](http://bit.ly/reinvent-dop340-slides).
+
 In this workshop, you'll learn how to better manage Lambda Applications, use [Serverless Application Model (SAM)](https://github.com/awslabs/serverless-application-model) to debug locally and try out X-Ray to trace code errors & performance issues.
 
 You will use SAM to deploy API interfaces, business logic, and database into your AWS account. The RESTful API will allow a user to add items into a DynamoDB table and view list of items added.

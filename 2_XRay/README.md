@@ -178,10 +178,10 @@ One of the many use cases of X-Ray is to also identify application performance i
   ![X-Ray Delay](images/xray-delay.png)
 
   What we have added here are two things:
-  1. Add a delay of 5 secs after the DynamoDB scan call.
-  2. Use X-Ray `captureAsyncFunc` function to wrap the code to add subsegments to the xray trace.
+  - Add a delay of 5 secs after the DynamoDB scan call.
+  - Use X-Ray `captureAsyncFunc` function to wrap the code to add subsegments to the xray trace.
 
-3. That's it! Stage the change on the file `get-all-items.js`, commit and push the change to the CodeCommit respository.
+3.That's it! Stage the change on the file `get-all-items.js`, commit and push the change to the CodeCommit respository.
 
 4. Give it a few minutes for [CodePipeline](https://us-west-1.console.aws.amazon.com/codesuite/codepipeline/pipelines/) to pull the code, build and deploy it to our API Gateway endpoint.
 
